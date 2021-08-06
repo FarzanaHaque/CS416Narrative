@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<body onload='init()'>
+Incomes:
+<button id="b1" onclick="cselect('Low income','orange');Ttip('Lowest Income Averages:(15 countries)<br>2,8732,142 Population <br>50,200 Covid Cases<br>1,057 Deaths<br>654,001 vaccines');bt('b1','b2')">Lowest</button>
+<button id="b2" onclick="cselect('Lower middle income','Red');Ttip('Lower Middle Income Averages:(37 countries)<br>76,040,098 Population <br>1,078,632 Covid Cases<br>16,411 Deaths<br>10,467,155 vaccines');bt('b2','b3')">Lower Middle</button>
+<button id="b3" onclick="cselect('Upper middle income','green');Ttip('Upper Middle Income Averages:(48 countries)<br>59,482,301 Population <br>1,207,580 Covid Cases<br>34,562 Deaths<br>28,912,413 vaccines');bt('b3','b4')">Upper Middle</button>
+<button id="b4" onclick="cselect('High income','blue');Ttip('Highest Income Averages:(58 countries)<br>19,717,045 Population <br>1,355,295 Covid Cases<br>27,010 Deaths<br>15,232,916 vaccines');benable()">Highest</button>
+<button id="all" onclick="cselect('Low income','orange');cselect('Lower middle income','Red');cselect('Upper middle income','green');cselect('High income','blue');Ttip('Total Averages:(152 countries)<br>46,545,783 Population <br>11,182,924 Covid Cases<br>25,705 Deaths<br>17,825,409 vaccines');pink()">All</button>
+<br>
+<button id="r1" onclick="cremove('Low income','orange');Ttip('Removed Lowest')">Remove lowest</button>
+<button id="r2" onclick="cremove('Lower middle income','red');Ttip('Removed Lower Middle')">Remove lower middle</button>
+<button id= "r3" onclick="cremove('Upper middle income','green');Ttip('Removed Upper middle')">Remove higher middle</button>
+<button id="r4" onclick="cremove('High income','blue');Ttip('Removed Highest')">Remove highest</button><br>
+Populations Vs Vaccines
+<svg id="chart1" width=400 height=400></svg> Cases vs Deaths
+<svg id="chart2" width=400 height=400></svg>
+<script type='text/javascript'>
+var data;
+var divB=d3.select("body").append("div").style("opacity", 1).attr("class", "tooltip").style("background-color", "green").style("border", "solid").style("border-width", "2px").style("border-height", "5px").style("padding", "5px").html("Exploring Population vs Covid Cases dependent on income");
+function Ttip(text){d3.select("div").html(text);
+}
+var freeform=false;
+var xs=d3.scaleLog().domain([10000,1500000000]).range([0,300]);
+var ys= d3.scaleLog().domain([10000,1500000000]).range([300,0]);
+var x_axis=d3.axisBottom(xs).tickValues([10000,100000,1000000,100000000,100000000,1000000000]);
+var y_axis=d3.axisLeft(ys).tickValues([10000,100000,1000000,100000000,100000000,1000000000]);
+var xs2=d3.scaleLog().domain([1,35000000]).range([0,300]);
+var ys2= d3.scaleLog().domain([1,603000]).range([300,0]);
+var x_axis2=d3.axisBottom(xs2);
+var y_axis2=d3.axisLeft(ys2);
+function bt(disable,enable){
+	if(!freeform){
+	document.getElementById(enable).disabled = false;
+	document.getElementById(disable).disabled = true;
+    }
+}
+function pink(){
+divB.style('background-color','pink');
+}
+function benable(){
+	freeform=true;
+	document.getElementById('b1').disabled = false;
+    d3.select("#b1").style('background-color','orange');
+    	document.getElementById('b2').disabled = false;
+	document.getElementById('b3').disabled = false;
+    	document.getElementById('b4').disabled = false;
+        	document.getElementById('r1').disabled = false;
+            	document.getElementById('r2').disabled = false;
+                	document.getElementById('r3').disabled = false;
+                    	document.getElementById('r4').disabled = false;
+                        	document.getElementById('all').disabled = false; 
+    d3.select("#b2").style('background-color','red');
+    d3.select("#b3").style('background-color','green');
+    d3.select("#b4").style('background-color','blue');
+divB.style('background-color','blue');
+}
+async function init(){
+data=await d3.csv('https://raw.githubusercontent.com/FarzanaHaque/CS416Narrative/main/Cases%2Cdeaths%2Cregion%2Cincome%2Cpopulation%2Cvaccine_doses.csv');
+document.getElementById("b2").disabled = true;
+document.getElementById("b3").disabled = true;
+document.getElementById("b4").disabled = true;
+document.getElementById("r1").disabled = true;
+document.getElementById("r2").disabled = true;
+document.getElementById("r3").disabled = true;
+document.getElementById("r4").disabled = true;
+document.getElementById("all").disabled = true;
+d3.selectAll("svg").append("g").attr("transform","translate("+50+"," +50+")").call(y_axis);
+d3.selectAll("svg").append("g").attr("transform","translate("+50+"," +350+")").call(x_axis);
+d3.select('#chart1').append("g").attr("transform","translate("+50+","+50+")").selectAll('circle').data(data)
+.enter().append('circle').attr('fill','black')
+.attr('cx',function(d){return xs(d.Population);})
+.attr('cy',function(d){return ys(d.Vaccine_doses);})
+.attr('r',function(d){return 5}).attr('opacity','1.0').on("mouseover",function(d){mover(d);}).on("mouseout",function(d){mout(d);});
+d3.select('#chart2').append("g").attr("transform","translate("+50+","+50+")").selectAll('circle').data(data)
+.enter().append('circle').attr('fill','black')
+.attr('cx',function(d){return xs2(d.Cases);})
+.attr('cy',function(d){return ys2(d.Deaths);})
+.attr('r',function(d){return 5}).attr('opacity','1.0').on("mouseover",function(d){mover(d);}).on("mouseout",function(d){mout(d);});
+Ttip('Exploring Population vs Covid Cases dependent on income');
+}
+
+function mover(d){
+	Ttip(d.Country_Region+"("+d.Region+")<br>"+'Population: '+d.Population+' <br>Covid Cases: '+d.Cases+'<br>Deaths: '+d.Deaths+'<br>Vaccines: '+d.Vaccine_doses);
+}
+function mout(d){
+	//Ttip("World Stats");
+}
+function cremove(filt,color){
+	d3.selectAll('circle').filter(function(d){return d.Income==filt;}).transition().delay(50).remove();
+divB.style('background-color',color);
+}
+function cselect(filt,color) {
+d3.select('#chart1').append("g").attr("transform","translate("+50+","+50+")").selectAll('circle').data(data)
+.enter().append('circle').filter(function(d){return d.Income==filt;}).attr('fill',color)
+.attr('cx',function(d){return xs(d.Population);})
+.attr('cy',function(d){return ys(d.Vaccine_doses);})
+.attr('r',function(d){return 5}).attr('opacity','1.0').on("mouseover",function(d){mover(d);}).on("mouseout",Ttip(" "));
+d3.select('#chart2').append("g").attr("transform","translate("+50+","+50+")").selectAll('circle').data(data)
+.enter().append('circle').filter(function(d){return d.Income==filt;}).attr('fill',color)
+.attr('cx',function(d){return xs2(d.Cases);})
+.attr('cy',function(d){return ys2(d.Deaths);})
+.attr('r',function(d){return 5}).attr('opacity','1.0').on("mouseover",function(d){mover(d);}).on("mouseout",Ttip(" "));
+divB.style('background-color',color);
+}
+
+
+</script>
+</body>
+</html>
+
